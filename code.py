@@ -43,12 +43,15 @@ def get_bpm_level(bpm):
 def main(bpm, beat):
     cp.pixels.brightness = 0.2
 
-    piezo = pwmio.PWMOut(board.A2, duty_cycle=0, frequency=440, variable_frequency=True)
+    cp.detect_taps = 2  # double tap for enable/disable sound
 
     count = 0
     inc = 1
     bpm_show = 0
     beat_show = 0
+    enable = True
+
+
 
     while True:
         # Start time
@@ -91,6 +94,9 @@ def main(bpm, beat):
                 if beat < 10:
                     beat += 1
 
+        if cp.tapped:
+            enable = not enable
+
         # Show configuration
         if bpm_show > 0:
             neo_pixel_show_level((0, 0, 50), get_bpm_level(bpm))
@@ -98,20 +104,21 @@ def main(bpm, beat):
             neo_pixel_show_level((50, 50, 0), beat)
 
         # Metronome Light & Sound
-        piezo.duty_cycle = 65535 // 2  # On 50%
         if count % beat == 0:
             if bpm_show == 0 and beat_show == 0:
                 cp.pixels.fill((0, 50, 0))
-            piezo.frequency = FREQ * 2
+            if enable:
+                cp.start_tone(FREQ * 2)
         else:
             if bpm_show == 0 and beat_show == 0:
                 cp.pixels.fill((50, 0, 0))
-            piezo.frequency = FREQ
+            if enable:
+                cp.start_tone(FREQ)
         time.sleep(0.05)
         if bpm_show == 0 and beat_show == 0:
             cp.pixels.fill((0, 0, 0))
         time.sleep(0.05)
-        piezo.duty_cycle = 0  # OFF
+        cp.stop_tone()
 
         count += 1
         # Set interval depending on bpm
