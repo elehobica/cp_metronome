@@ -7,38 +7,29 @@ FREQ = 1397
 BPM_DEFAULT = 86  # Moderato
 BEAT_DEFAULT = 4
 
+def reorder_pixel(i):
+    return 4 - (i % 5) + (i // 5) * 5  # reorder 4, 3, 2, 1, 0, 9, 8, 7, 6, 5
+
+def neo_pixel_show_point(color, point):
+    for i in range(10):
+        if i == point:
+            cp.pixels[reorder_pixel(i)] = color
+        else:
+            cp.pixels[reorder_pixel(i)] = (0, 0, 0)
+
 def neo_pixel_show_level(color, level):
-    def reorder(i):
-        return 4 - (i % 5) + (i // 5) * 5  # reorder 4, 3, 2, 1, 0, 9, 8, 7, 6, 5
     for i in range(level):
-        cp.pixels[reorder(i)] = color
+        cp.pixels[reorder_pixel(i)] = color
     for i in range(level, 10):
-        cp.pixels[reorder(i)] = (0, 0, 0)
+        cp.pixels[reorder_pixel(i)] = (0, 0, 0)
 
 def get_bpm_level(bpm):
-    if bpm < 40:
-        level = 0
-    elif bpm < 60:
-        level = 1
-    elif bpm < 70:
-        level = 2
-    elif bpm < 80:
-        level = 3
-    elif bpm < 90:
-        level = 4
-    elif bpm < 100:
-        level = 5
-    elif bpm < 110:
-        level = 6
-    elif bpm < 120:
-        level = 7
-    elif bpm < 140:
-        level = 8
-    elif bpm < 160:
-        level = 9
+    lut = (40, 60, 70, 80, 90, 100, 110, 120, 140, 160)
+    for i, value in enumerate(lut):
+        if bpm < value:
+            return i
     else:
-        level = 10
-    return level
+        return len(lut)
 
 def main(bpm, beat):
     cp.pixels.brightness = 0.2
@@ -49,9 +40,7 @@ def main(bpm, beat):
     inc = 1
     bpm_show = 0
     beat_show = 0
-    enable = True
-
-
+    enable = False
 
     while True:
         # Start time
@@ -103,22 +92,27 @@ def main(bpm, beat):
         elif beat_show > 0:
             neo_pixel_show_level((50, 50, 0), beat)
 
-        # Metronome Light & Sound
-        if count % beat == 0:
+        if enable:
+            # Metronome Light & Sound
+            if count % beat == 0:
+                if bpm_show == 0 and beat_show == 0:
+                    cp.pixels.fill((0, 50, 0))
+                if enable:
+                    cp.start_tone(FREQ * 2)
+            else:
+                if bpm_show == 0 and beat_show == 0:
+                    cp.pixels.fill((50, 0, 0))
+                if enable:
+                    cp.start_tone(FREQ)
+            time.sleep(0.05)
             if bpm_show == 0 and beat_show == 0:
-                cp.pixels.fill((0, 50, 0))
-            if enable:
-                cp.start_tone(FREQ * 2)
+                cp.pixels.fill((0, 0, 0))
+            time.sleep(0.05)
+            cp.stop_tone()
         else:
             if bpm_show == 0 and beat_show == 0:
-                cp.pixels.fill((50, 0, 0))
-            if enable:
-                cp.start_tone(FREQ)
-        time.sleep(0.05)
-        if bpm_show == 0 and beat_show == 0:
-            cp.pixels.fill((0, 0, 0))
-        time.sleep(0.05)
-        cp.stop_tone()
+                neo_pixel_show_point((10, 10, 10), count % 10)
+            cp.stop_tone()
 
         count += 1
         # Set interval depending on bpm
