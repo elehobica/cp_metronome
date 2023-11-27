@@ -5,6 +5,8 @@ from adafruit_circuitplayground import cp
 
 FREQ = 1397
 BPM_DEFAULT = 86  # Moderato
+BPM_MIN = 30
+BPM_MAX = 252
 BEAT_DEFAULT = 4
 
 def reorder_pixel(i):
@@ -58,17 +60,17 @@ def main(bpm, beat):
             else:
                 bpm_show = 3
             if bt_a:
-                if bpm - inc > 30:
+                if bpm - inc > BPM_MIN:
                     bpm -= inc
                     inc += 1
                 else:
-                    bpm = 30
+                    bpm = BPM_MIN
             if bt_b:
-                if bpm + inc < 252:
+                if bpm + inc < BPM_MAX:
                     bpm += inc
                     inc += 1
                 else:
-                    bpm = 252
+                    bpm = BPM_MAX
         else:  # BEAT selection
             bpm_show = 0
             if not bt_a and not bt_b:
@@ -116,6 +118,8 @@ def main(bpm, beat):
 
         count += 1
         # Set interval depending on bpm
-        time.sleep(60 / bpm - (time.monotonic() - t))
+        t_rest = 60 / bpm - (time.monotonic() - t)
+        if t_rest > 0:
+            time.sleep(t_rest)
 
 main(BPM_DEFAULT, BEAT_DEFAULT)
