@@ -1,12 +1,10 @@
 import time
-import board
-import pwmio
 from adafruit_circuitplayground import cp
 
 FREQ = 1397
-BPM_DEFAULT = 86  # Moderato
 BPM_MIN = 30
 BPM_MAX = 252
+BPM_DEFAULT = 86  # Moderato
 BEAT_DEFAULT = 4
 
 def reorder_pixel(i):
@@ -97,20 +95,18 @@ def main(bpm, beat):
         if enable:
             # Metronome Light & Sound
             if count % beat == 0:
+                cp.start_tone(FREQ * 2)
                 if bpm_show == 0 and beat_show == 0:
                     cp.pixels.fill((0, 50, 0))
-                if enable:
-                    cp.start_tone(FREQ * 2)
             else:
+                cp.start_tone(FREQ)
                 if bpm_show == 0 and beat_show == 0:
                     cp.pixels.fill((50, 0, 0))
-                if enable:
-                    cp.start_tone(FREQ)
             time.sleep(0.05)
+            cp.stop_tone()
             if bpm_show == 0 and beat_show == 0:
                 cp.pixels.fill((0, 0, 0))
             time.sleep(0.05)
-            cp.stop_tone()
         else:
             if bpm_show == 0 and beat_show == 0:
                 neo_pixel_show_point((10, 10, 10), count % 10)
@@ -122,4 +118,5 @@ def main(bpm, beat):
         if t_rest > 0:
             time.sleep(t_rest)
 
-main(BPM_DEFAULT, BEAT_DEFAULT)
+if __name__ == '__main__':
+    main(BPM_DEFAULT, BEAT_DEFAULT)
