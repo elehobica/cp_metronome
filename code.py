@@ -1,4 +1,5 @@
 import time
+import storage
 from adafruit_circuitplayground import cp
 
 FREQ = 1397
@@ -6,6 +7,7 @@ TEMPO_MIN = 30
 TEMPO_MAX = 252
 TEMPO_DEFAULT = 86  # Moderato
 BEAT_DEFAULT = 4
+CONFIG_FILE = './config.txt'
 
 def reorder_pixel(i):
     return 4 - (i % 5) + (i // 5) * 5  # reorder 4, 3, 2, 1, 0, 9, 8, 7, 6, 5
@@ -31,10 +33,35 @@ def get_tempo_level(tempo):
     else:
         return len(lut)
 
-def main(tempo, beat):
+def load_config():
+    tempo = TEMPO_DEFAULT
+    beat = BEAT_DEFAULT
+    try:
+        for line in open(CONFIG_FILE, 'r'):
+            if 'tempo=' in line:
+                tempo = int(line.split('=')[1])
+            if 'beat=' in line:
+                beat = int(line.split('=')[1])
+    except OSError:
+        print(f'"{CONFIG_FILE}" not found.')
+    return tempo, beat
+
+def save_config(tempo, beat):
+    try:
+        storage.remount('/', False)  # Read-only: False
+        with open(CONFIG_FILE, 'w') as f:
+            f.write(f'{tempo=}\n')
+            f.write(f'{beat=}\n')
+        storage.remount('/', True)  # Read-only: False
+    except RuntimeError:
+        print(f'cannot save to {CONFIG_FILE}')
+
+def main():
     cp.pixels.brightness = 0.2
 
     cp.detect_taps = 2  # double tap for enable/disable sound
+
+    tempo, beat = load_config()
 
     count = 0
     tempo_inc = 1
@@ -85,6 +112,8 @@ def main(tempo, beat):
 
         if cp.tapped:
             enable = not enable
+            if not enable:
+                save_config(tempo, beat)
 
         # Show configuration
         if tempo_show > 0:
@@ -119,4 +148,4 @@ def main(tempo, beat):
             time.sleep(t_rest)
 
 if __name__ == '__main__':
-    main(TEMPO_DEFAULT, BEAT_DEFAULT)
+    main()
