@@ -23,3 +23,15 @@ This project features:
 * With slide switch ON (left), push A button for tempo down, push B button for tempo up
 * With slide switch OFF (right), push A button for decrease beat, push B button for increase beat
 * Setting will be stored in Flash storage when stopping metronome (Note that this works only in standalone mode, doesn't work with terminal debug mode)
+
+## Tempo Indicator
+* Tempo Indicator shows 1. Tempo Meter --> 2. Tempo Digits (100's digit ->) 10's digit -> 1's digit
+### Tempo Meter
+This shows bpm as 100 <= bpm < 110
+
+![tempo_meter](doc/tempo_meter.jpg)
+
+### Tempo Digits
+This shows digit '1'
+
+![tempo_digits](doc/tempo_digits.jpg)
