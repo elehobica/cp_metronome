@@ -11,6 +11,7 @@ CONFIG_FILE = './config.txt'
 
 bt_a_accum = 0
 bt_b_accum = 0
+button_last = 50
 tempo = TEMPO_DEFAULT
 beat = BEAT_DEFAULT
 tempo_inc = 1
@@ -71,6 +72,7 @@ def save_config(tempo, beat):
 
 def check_button_status(dec_show = False):
     global bt_a_accum, bt_b_accum
+    global button_last
     global tempo, beat
     global tempo_show, beat_show
     global tempo_inc
@@ -86,38 +88,44 @@ def check_button_status(dec_show = False):
         bt_a_accum = 0
         bt_b_accum = 0
     if cp.switch:  # TEMPO adjust
-        if bt_a_accum == 1 or (bt_a_accum >= 5 and bt_a_accum % 5 == 0):
-            if tempo - tempo_inc > TEMPO_MIN:
-                tempo -= tempo_inc
-                tempo_inc += 1
-            else:
-                tempo = TEMPO_MIN
-        if bt_b_accum == 1 or (bt_b_accum >= 5 and bt_b_accum % 5 == 0):
-            if tempo + tempo_inc < TEMPO_MAX:
-                tempo += tempo_inc
-                tempo_inc += 1
-            else:
-                tempo = TEMPO_MAX
+        if button_last < 50:
+            if bt_a_accum == 1 or (bt_a_accum >= 5 and bt_a_accum % 5 == 0):
+                if tempo - tempo_inc > TEMPO_MIN:
+                    tempo -= tempo_inc
+                    tempo_inc += 1
+                else:
+                    tempo = TEMPO_MIN
+            if bt_b_accum == 1 or (bt_b_accum >= 5 and bt_b_accum % 5 == 0):
+                if tempo + tempo_inc < TEMPO_MAX:
+                    tempo += tempo_inc
+                    tempo_inc += 1
+                else:
+                    tempo = TEMPO_MAX
         beat_show = 0
-        if not bt_a and not bt_b:
+        if bt_a or bt_b:
+            tempo_show = 4 if tempo < 60 else 6 if tempo < 100 else 9
+        else:
             if dec_show and tempo_show > 0:
                 tempo_show -= 1
             tempo_inc = 1
-        else:
-            tempo_show = 4 if tempo < 60 else 6 if tempo < 100 else 9
     else:  # BEAT selection
-        if bt_a_accum == 1 or (bt_a_accum >= 10 and bt_a_accum % 10 == 0):
-            if beat > 1:
-                beat -= 1
-        if bt_b_accum == 1 or (bt_b_accum >= 10 and bt_b_accum % 10 == 0):
-            if beat < 10:
-                beat += 1
+        if button_last < 50:
+            if bt_a_accum == 1 or (bt_a_accum >= 10 and bt_a_accum % 10 == 0):
+                if beat > 1:
+                    beat -= 1
+            if bt_b_accum == 1 or (bt_b_accum >= 10 and bt_b_accum % 10 == 0):
+                if beat < 10:
+                    beat += 1
         tempo_show = 0
-        if not bt_a and not bt_b:
+        if bt_a or bt_b:
+            beat_show = 3
+        else:
             if dec_show and beat_show > 0:
                 beat_show -= 1
-        else:
-            beat_show = 3
+    if bt_a or bt_b:
+        button_last = 0
+    else:
+        button_last += 1
 
 def main():
     cp.pixels.brightness = 0.2
