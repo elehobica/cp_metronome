@@ -27,6 +27,13 @@ def neo_pixel_show_point(color, point):
         else:
             cp.pixels[reorder_pixel(i)] = (0, 0, 0)
 
+def neo_pixel_show_odd(color):
+    for i in range(10):
+        if i % 2 == 0:
+            cp.pixels[reorder_pixel(i)] = (0, 0, 0)
+        else:
+            cp.pixels[reorder_pixel(i)] = color
+
 def neo_pixel_show_level(color, level):
     for i in range(level):
         cp.pixels[reorder_pixel(i)] = color
@@ -62,7 +69,7 @@ def save_config(tempo, beat):
     except RuntimeError:
         print(f'cannot save to {CONFIG_FILE}')
 
-def check_button_status(show_dec = False):
+def check_button_status(dec_show = False):
     global bt_a_accum, bt_b_accum
     global tempo, beat
     global tempo_show, beat_show
@@ -79,13 +86,6 @@ def check_button_status(show_dec = False):
         bt_a_accum = 0
         bt_b_accum = 0
     if cp.switch:  # TEMPO adjust
-        beat_show = 0
-        if not bt_a and not bt_b:
-            if show_dec and tempo_show > 0:
-                tempo_show -= 1
-            tempo_inc = 1
-        else:
-            tempo_show = 3
         if bt_a_accum == 1 or (bt_a_accum >= 5 and bt_a_accum % 5 == 0):
             if tempo - tempo_inc > TEMPO_MIN:
                 tempo -= tempo_inc
@@ -98,19 +98,26 @@ def check_button_status(show_dec = False):
                 tempo_inc += 1
             else:
                 tempo = TEMPO_MAX
-    else:  # BEAT selection
-        tempo_show = 0
+        beat_show = 0
         if not bt_a and not bt_b:
-            if show_dec and beat_show > 0:
-                beat_show -= 1
+            if dec_show and tempo_show > 0:
+                tempo_show -= 1
+            tempo_inc = 1
         else:
-            beat_show = 3
+            tempo_show = 4 if tempo < 60 else 6 if tempo < 100 else 9
+    else:  # BEAT selection
         if bt_a_accum == 1 or (bt_a_accum >= 10 and bt_a_accum % 10 == 0):
             if beat > 1:
                 beat -= 1
         if bt_b_accum == 1 or (bt_b_accum >= 10 and bt_b_accum % 10 == 0):
             if beat < 10:
                 beat += 1
+        tempo_show = 0
+        if not bt_a and not bt_b:
+            if dec_show and beat_show > 0:
+                beat_show -= 1
+        else:
+            beat_show = 3
 
 def main():
     cp.pixels.brightness = 0.2
@@ -126,7 +133,7 @@ def main():
         # Start time
         t = time.monotonic()
 
-        check_button_status(show_dec = True)
+        check_button_status(dec_show = True)
 
         if cp.tapped:
             enable = not enable
@@ -134,8 +141,36 @@ def main():
                 save_config(tempo, beat)
 
         # Show configuration
-        if tempo_show > 0:
-            neo_pixel_show_level((0, 0, 50), get_tempo_level(tempo))
+        if tempo_show >= 9:
+                neo_pixel_show_level((0, 0, 50), get_tempo_level(tempo))
+        elif tempo_show == 8:
+            neo_pixel_show_point((0, 25, 25), (tempo // 100) % 10)
+        elif tempo_show == 7:
+            neo_pixel_show_point((0, 25, 25), (tempo // 100) % 10)
+        elif tempo_show == 6:
+            if tempo < 100:
+                neo_pixel_show_level((0, 0, 50), get_tempo_level(tempo))
+            else:
+                neo_pixel_show_point((0, 25, 25), -1)
+        elif tempo_show == 5:
+            neo_pixel_show_point((0, 25, 25), (tempo // 10) % 10)
+        elif tempo_show == 4:
+            if tempo < 60:
+                neo_pixel_show_level((0, 0, 50), get_tempo_level(tempo))
+            else:
+                neo_pixel_show_point((0, 25, 25), (tempo // 10) % 10)
+        elif tempo_show == 3:
+            if tempo < 60:
+                neo_pixel_show_point((0, 25, 25), (tempo // 10) % 10)
+            else:
+                neo_pixel_show_point((0, 25, 25), -1)
+        elif tempo_show == 2:
+            if tempo < 60:
+                neo_pixel_show_point((0, 25, 25), -1)
+            else:
+                neo_pixel_show_point((0, 25, 25), tempo % 10)
+        elif tempo_show == 1:
+            neo_pixel_show_point((0, 25, 25), tempo % 10)
         elif beat_show > 0:
             neo_pixel_show_level((50, 50, 0), beat)
 
