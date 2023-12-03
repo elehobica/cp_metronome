@@ -29,9 +29,9 @@ This project features:
 ### Tempo Meter
 This shows bpm as 100 <= bpm < 110
 
-![tempo_meter](doc/tempo_meter.jpg)
+![tempo_meter](doc/tempo_meter_small.jpg)
 
 ### Tempo Digits
 This shows digit '1'
 
-![tempo_digits](doc/tempo_digits.jpg)
+![tempo_digits](doc/tempo_digits_small.jpg)
