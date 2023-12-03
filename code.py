@@ -27,7 +27,7 @@ from adafruit_circuitplayground import cp
 FREQ = 1397
 TEMPO_MIN = 30
 TEMPO_MAX = 252
-TEMPO_DEFAULT = 86  # Moderato
+TEMPO_DEFAULT = 60
 BEAT_DEFAULT = 4
 CONFIG_FILE = './config.txt'
 
@@ -193,26 +193,27 @@ def main():
         # Start time
         t = time.monotonic()
 
+        if cp.tapped:
+            enable = not enable
+            count = 0
+            if not enable:
+                save_config(tempo, beat)
+
         # Show settings by NeoPixel
         show_settings(tempo, beat, tempo_show, beat_show, enable, count)
 
         tempo, beat, tempo_show, beat_show = check_button_status(tempo, beat, tempo_show, beat_show, decr = True)
-
-        if cp.tapped:
-            enable = not enable
-            if not enable:
-                save_config(tempo, beat)
 
         if enable:
             # Metronome Light & Sound
             if count % beat == 0:
                 cp.start_tone(FREQ * 2)
                 if tempo_show == 0 and beat_show == 0:
-                    cp.pixels.fill((0, 50, 0))
+                    cp.pixels.fill((50, 0, 0))
             else:
                 cp.start_tone(FREQ)
                 if tempo_show == 0 and beat_show == 0:
-                    cp.pixels.fill((50, 0, 0))
+                    cp.pixels.fill((0, 40, 0))
             time.sleep(0.05)
             cp.stop_tone()
             if tempo_show == 0 and beat_show == 0:
